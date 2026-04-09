@@ -1,0 +1,18 @@
+{
+  "@@locale": "ru",
+  "appTitle": "Телохранитель",
+  "homeTitle": "Телохранитель",
+  "sosActivate": "Активировать тревогу",
+  "sosCancel": "Отмена",
+  "sosCountdownSemantics": "Отмена тревоги, осталось {seconds} секунд",
+  "sosSent": "Сигнал тревоги передан",
+  "sosDemoMode": "Демо: тревога сохранена локально (без сервера)",
+  "sosError": "Не удалось отправить SOS",
+  "callCsm": "Позвонить в ЦСМ",
+  "chatOperator": "Чат с оператором",
+  "chatPlaceholder": "Здесь будет чат в полной версии приложения.",
+  "statusConnection": "Связь",
+  "statusGps": "GPS",
+  "statusBattery": "Аккумулятор: {percent}%",
+  "statusUnknown": "—"
+}

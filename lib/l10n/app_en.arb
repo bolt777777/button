@@ -1,0 +1,28 @@
+{
+  "@@locale": "en",
+  "appTitle": "Bodyguard",
+  "homeTitle": "Bodyguard",
+  "sosActivate": "Activate alarm",
+  "sosCancel": "Cancel",
+  "sosCountdownSemantics": "Cancel alarm, {seconds} seconds left",
+  "@sosCountdownSemantics": {
+    "placeholders": {
+      "seconds": {"type": "int"}
+    }
+  },
+  "sosSent": "Alarm signal sent",
+  "sosDemoMode": "Demo: SOS recorded locally (no server)",
+  "sosError": "Failed to send SOS",
+  "callCsm": "Call monitoring center",
+  "chatOperator": "Chat with operator",
+  "chatPlaceholder": "Chat will open here in the full app.",
+  "statusConnection": "Connection",
+  "statusGps": "GPS",
+  "statusBattery": "Battery: {percent}%",
+  "@statusBattery": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "statusUnknown": "—"
+}
