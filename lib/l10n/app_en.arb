@@ -4,7 +4,8 @@
   "homeTitle": "Bodyguard",
   "sosActivate": "Activate alarm",
   "sosCancel": "Cancel",
-  "sosCountdownSemantics": "Cancel alarm, {seconds} seconds left",
+  "sosDoubleTapHint": "Double-tap the SOS button to cancel",
+  "sosCountdownSemantics": "Sending in {seconds} s — double-tap SOS to cancel",
   "@sosCountdownSemantics": {
     "placeholders": {
       "seconds": {"type": "int"}
@@ -16,6 +17,10 @@
   "callCsm": "Call monitoring center",
   "chatOperator": "Chat with operator",
   "chatPlaceholder": "Chat will open here in the full app.",
+  "chatSubtitle": "Encrypted session",
+  "chatMessageHint": "Message…",
+  "chatWelcome": "Monitoring center online. Briefly describe what’s happening.",
+  "chatDemoReply": "Message received. Stay on the line if you can.",
   "statusConnection": "Connection",
   "statusGps": "GPS",
   "statusBattery": "Battery: {percent}%",

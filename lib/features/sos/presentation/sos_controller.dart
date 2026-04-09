@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../data/sos_dto.dart';
 import '../data/sos_repository_provider.dart';
 
-const int _sosCountdownSeconds = 10;
+const int _sosCountdownSeconds = 3;
 
 class SosUiState {
   const SosUiState({
@@ -115,7 +115,21 @@ class SosController extends StateNotifier<SosUiState> {
         return;
       }
 
-      final pos = await Geolocator.getCurrentPosition();
+      late Position pos;
+      try {
+        pos = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.medium,
+            timeLimit: Duration(seconds: 18),
+          ),
+        );
+      } on TimeoutException {
+        state = state.copyWith(
+          lastError:
+              'Геолокация не ответила вовремя. Выйдите на открытое место или проверьте GPS в настройках.',
+        );
+        return;
+      }
       final res = await repo.createSos(
         CreateSosRequest(
           latitude: pos.latitude,

@@ -21,8 +21,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sosCancel => 'Отмена';
 
   @override
+  String get sosDoubleTapHint => 'Двойное нажатие по SOS — отмена';
+
+  @override
   String sosCountdownSemantics(int seconds) {
-    return 'Отмена тревоги, осталось $seconds секунд';
+    return 'Отправка через $seconds с — двойное нажатие SOS для отмены';
   }
 
   @override
@@ -42,6 +45,18 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get chatPlaceholder => 'Здесь будет чат в полной версии приложения.';
+
+  @override
+  String get chatSubtitle => 'Защищённый канал';
+
+  @override
+  String get chatMessageHint => 'Сообщение…';
+
+  @override
+  String get chatWelcome => 'Центр на связи. Кратко опишите ситуацию.';
+
+  @override
+  String get chatDemoReply => 'Сообщение получено. Оставайтесь на связи.';
 
   @override
   String get statusConnection => 'Связь';

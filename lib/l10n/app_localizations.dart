@@ -122,10 +122,16 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get sosCancel;
 
+  /// No description provided for @sosDoubleTapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-tap the SOS button to cancel'**
+  String get sosDoubleTapHint;
+
   /// No description provided for @sosCountdownSemantics.
   ///
   /// In en, this message translates to:
-  /// **'Cancel alarm, {seconds} seconds left'**
+  /// **'Sending in {seconds} s — double-tap SOS to cancel'**
   String sosCountdownSemantics(int seconds);
 
   /// No description provided for @sosSent.
@@ -163,6 +169,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chat will open here in the full app.'**
   String get chatPlaceholder;
+
+  /// No description provided for @chatSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted session'**
+  String get chatSubtitle;
+
+  /// No description provided for @chatMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message…'**
+  String get chatMessageHint;
+
+  /// No description provided for @chatWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitoring center online. Briefly describe what’s happening.'**
+  String get chatWelcome;
+
+  /// No description provided for @chatDemoReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Message received. Stay on the line if you can.'**
+  String get chatDemoReply;
 
   /// No description provided for @statusConnection.
   ///

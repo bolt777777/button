@@ -21,8 +21,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sosCancel => 'Cancel';
 
   @override
+  String get sosDoubleTapHint => 'Double-tap the SOS button to cancel';
+
+  @override
   String sosCountdownSemantics(int seconds) {
-    return 'Cancel alarm, $seconds seconds left';
+    return 'Sending in $seconds s — double-tap SOS to cancel';
   }
 
   @override
@@ -42,6 +45,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatPlaceholder => 'Chat will open here in the full app.';
+
+  @override
+  String get chatSubtitle => 'Encrypted session';
+
+  @override
+  String get chatMessageHint => 'Message…';
+
+  @override
+  String get chatWelcome =>
+      'Monitoring center online. Briefly describe what’s happening.';
+
+  @override
+  String get chatDemoReply => 'Message received. Stay on the line if you can.';
 
   @override
   String get statusConnection => 'Connection';

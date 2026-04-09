@@ -3,21 +3,38 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
+/// Устойчивый поток: при сбое плагина не роняем весь UI.
 final connectivityStatusProvider = StreamProvider<List<ConnectivityResult>>(
   (ref) async* {
     final c = Connectivity();
-    yield await c.checkConnectivity();
-    await for (final r in c.onConnectivityChanged) {
-      yield r;
+    try {
+      yield await c.checkConnectivity();
+    } catch (_) {
+      yield [ConnectivityResult.mobile];
+    }
+    try {
+      await for (final r in c.onConnectivityChanged) {
+        yield r;
+      }
+    } catch (_) {
+      yield [ConnectivityResult.mobile];
     }
   },
 );
 
 final batteryLevelProvider = StreamProvider<int>((ref) async* {
   final battery = Battery();
-  yield await battery.batteryLevel;
-  await for (final _ in Stream.periodic(const Duration(seconds: 20))) {
+  try {
     yield await battery.batteryLevel;
+  } catch (_) {
+    yield -1;
+  }
+  try {
+    await for (final _ in Stream.periodic(const Duration(seconds: 20))) {
+      yield await battery.batteryLevel;
+    }
+  } catch (_) {
+    yield -1;
   }
 });
 

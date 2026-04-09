@@ -4,6 +4,9 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- На части реальных iPhone Impeller даёт пустой первый кадр (белый экран после Launch Screen). Симулятор не воспроизводит. -->
+	<key>FLTEnableImpeller</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
