@@ -1,0 +1,28 @@
+Bodyguard — your personal safety companion that connects you with professional security guards in seconds.
+
+INSTANT SOS ALERT
+Press the SOS button when you feel unsafe. Your GPS location is immediately sent to the security operations center. A guard is automatically dispatched to your exact location.
+
+LIVE GUARD TRACKING
+After sending an SOS, see the assigned guard approaching you on a real-time map. Track their movement, estimated arrival time, and distance — so you always know help is on the way.
+
+PROFESSIONAL SECURITY NETWORK
+Our platform connects you to a network of verified, professional security guards operating in your area. Each guard is GPS-tracked and ready to respond within minutes.
+
+OPERATOR DISPATCH CENTER
+Behind the scenes, trained operators monitor all active alerts on a live dashboard. They can manually assign guards, coordinate responses, and ensure your safety.
+
+KEY FEATURES:
+- One-tap SOS with 3-second countdown (prevents accidental triggers)
+- Real-time map showing guard location and route
+- Automatic nearest-guard assignment
+- Live GPS tracking with ETA
+- Device status monitoring (network, GPS, battery)
+- Direct call to security center
+- Secure JWT authentication
+- Multi-language support (English, Russian)
+
+PRIVACY & SECURITY
+Your location is only shared when you activate an SOS alert. All data is encrypted in transit. We never sell your personal information.
+
+Bodyguard — because your safety shouldn't wait.

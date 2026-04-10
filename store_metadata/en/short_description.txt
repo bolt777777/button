@@ -1,0 +1,1 @@
+Personal safety app with SOS alert, live guard tracking and real-time dispatch.
