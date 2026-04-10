@@ -13,7 +13,7 @@ class SosRepositoryImpl implements SosRepository {
   final Dio _dio;
 
   static const bool _mock =
-      bool.fromEnvironment('MOCK_SOS', defaultValue: true);
+      bool.fromEnvironment('MOCK_SOS', defaultValue: false);
 
   @override
   Future<CreateSosResponse> createSos(CreateSosRequest body) async {
@@ -25,7 +25,7 @@ class SosRepositoryImpl implements SosRepository {
     }
 
     final res = await _dio.post<Map<String, dynamic>>(
-      '/incidents/sos',
+      '/alerts/sos',
       data: body.toJson(),
     );
     final data = res.data;

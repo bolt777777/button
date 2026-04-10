@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final dioProvider = Provider<Dio>((ref) {
   const baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://example.invalid',
+    defaultValue: 'http://localhost:3000',
   );
 
   final dio = Dio(

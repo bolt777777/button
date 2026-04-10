@@ -39,8 +39,12 @@ final batteryLevelProvider = StreamProvider<int>((ref) async* {
 });
 
 final gpsOkProvider = FutureProvider<bool>((ref) async {
-  final enabled = await Geolocator.isLocationServiceEnabled();
-  if (!enabled) return false;
-  final p = await Geolocator.checkPermission();
-  return p == LocationPermission.always || p == LocationPermission.whileInUse;
+  try {
+    final enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) return false;
+    final p = await Geolocator.checkPermission();
+    return p == LocationPermission.always || p == LocationPermission.whileInUse;
+  } catch (_) {
+    return false;
+  }
 });
