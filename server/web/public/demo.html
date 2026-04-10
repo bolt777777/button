@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bodyguard — Dispatcher Terminal</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3345;
+    --text: #e4e6ed;
+    --text-dim: #8b8fa3;
+    --coral: #e8615a;
+    --coral-glow: rgba(232, 97, 90, .35);
+    --blue: #4a9eff;
+    --blue-glow: rgba(74, 158, 255, .35);
+    --green: #34c759;
+    --orange: #ff9f0a;
+    --radius: 10px;
+  }
+
+  body {
+    font-family: -apple-system, 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: .3px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--coral);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .header-stats {
+    display: flex;
+    gap: 24px;
+  }
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .stat-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .stat-dot.red { background: var(--coral); box-shadow: 0 0 8px var(--coral-glow); }
+  .stat-dot.blue { background: var(--blue); box-shadow: 0 0 8px var(--blue-glow); }
+  .stat-dot.green { background: var(--green); }
+  .stat-count {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 15px;
+  }
+
+  /* ── Layout ── */
+  .app {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 340px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .sidebar-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .alert-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+  }
+  .alert-card:hover { border-color: var(--coral); }
+  .alert-card.selected {
+    border-color: var(--coral);
+    box-shadow: 0 0 0 1px var(--coral), 0 0 20px var(--coral-glow);
+  }
+  .alert-card.resolved {
+    opacity: .5;
+    border-color: var(--green);
+  }
+  .alert-card .name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .alert-card .name .pulse-dot {
+    width: 8px; height: 8px;
+    background: var(--coral);
+    border-radius: 50%;
+    animation: pulse-dot 1.5s infinite;
+  }
+  .alert-card.resolved .name .pulse-dot {
+    background: var(--green);
+    animation: none;
+  }
+  .alert-card .meta {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .alert-card .status-badge {
+    position: absolute;
+    top: 12px; right: 14px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .badge-new { background: rgba(232,97,90,.15); color: var(--coral); }
+  .badge-assigned { background: rgba(255,159,10,.15); color: var(--orange); }
+  .badge-resolved { background: rgba(52,199,89,.15); color: var(--green); }
+
+  .guard-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .guard-card:hover { border-color: var(--blue); }
+  .guard-card.disabled { opacity: .4; cursor: not-allowed; }
+  .guard-avatar {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .guard-card.disabled .guard-avatar { background: #555; }
+  .guard-info { flex: 1; }
+  .guard-info .name { font-size: 13px; font-weight: 600; }
+  .guard-info .status { font-size: 11px; color: var(--text-dim); }
+  .guard-status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .guard-status-dot.available { background: var(--green); }
+  .guard-status-dot.busy { background: var(--orange); }
+  .guard-status-dot.at-location { background: var(--blue); }
+
+  /* ── Map ── */
+  .map-wrap {
+    flex: 1;
+    position: relative;
+  }
+  #map { width: 100%; height: 100%; }
+
+  /* ── Toast ── */
+  .toast-container {
+    position: fixed;
+    top: 70px; right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 20px;
+    font-size: 13px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    animation: toast-in .3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 280px;
+  }
+  .toast.info { border-left: 3px solid var(--blue); }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.alert { border-left: 3px solid var(--coral); }
+
+  /* ── Instruction Banner ── */
+  .instruction {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 24px;
+    font-size: 13px;
+    color: var(--text-dim);
+    z-index: 1000;
+    box-shadow: 0 4px 24px rgba(0,0,0,.3);
+    transition: all .3s;
+    text-align: center;
+    pointer-events: none;
+  }
+  .instruction strong { color: var(--text); }
+
+  /* ── Leaflet custom markers ── */
+  .sos-marker {
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--coral);
+    border: 3px solid #fff;
+    box-shadow: 0 0 16px var(--coral-glow), 0 2px 8px rgba(0,0,0,.3);
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    animation: pulse-marker 2s infinite;
+  }
+  .sos-marker.selected {
+    background: var(--orange);
+    box-shadow: 0 0 24px rgba(255,159,10,.5), 0 2px 8px rgba(0,0,0,.3);
+    animation: pulse-marker-sel 1s infinite;
+  }
+  .sos-marker.resolved {
+    background: var(--green);
+    box-shadow: 0 0 12px rgba(52,199,89,.3);
+    animation: none;
+    font-size: 18px;
+  }
+
+  .guard-marker {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--blue);
+    border: 3px solid #fff;
+    box-shadow: 0 0 12px var(--blue-glow), 0 2px 8px rgba(0,0,0,.3);
+    font-size: 16px;
+    color: #fff;
+  }
+  .guard-marker.busy {
+    background: var(--orange);
+    box-shadow: 0 0 12px rgba(255,159,10,.3);
+  }
+
+  /* ── Dark map tiles ── */
+  .leaflet-tile-pane { filter: brightness(.7) contrast(1.1) saturate(.3) hue-rotate(180deg) invert(1); }
+  .leaflet-control-attribution { display: none !important; }
+
+  /* ── Animations ── */
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .5; transform: scale(1.3); }
+  }
+  @keyframes pulse-marker {
+    0%, 100% { box-shadow: 0 0 16px var(--coral-glow), 0 2px 8px rgba(0,0,0,.3); }
+    50% { box-shadow: 0 0 30px var(--coral-glow), 0 0 60px rgba(232,97,90,.15), 0 2px 8px rgba(0,0,0,.3); }
+  }
+  @keyframes pulse-marker-sel {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🛡</div>
+    <span>Bodyguard</span>
+    <span style="color:var(--text-dim); font-weight:400; font-size:13px; margin-left:4px;">Dispatcher Terminal</span>
+  </div>
+  <div class="header-stats">
+    <div class="stat"><span class="stat-dot red"></span> Active SOS <span class="stat-count" id="stat-sos">3</span></div>
+    <div class="stat"><span class="stat-dot green"></span> Guards Online <span class="stat-count" id="stat-guards">4</span></div>
+    <div class="stat"><span class="stat-dot blue"></span> Dispatched <span class="stat-count" id="stat-dispatched">0</span></div>
+  </div>
+</header>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-section" style="flex:1; overflow-y:auto;">
+      <div class="sidebar-title">🔴 Active Alerts</div>
+      <div id="alerts-list"></div>
+    </div>
+    <div class="sidebar-section" style="flex:1; overflow-y:auto;">
+      <div class="sidebar-title">🛡 Guards</div>
+      <div id="guards-list"></div>
+    </div>
+  </div>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+    <div class="instruction" id="instruction">
+      <strong>Step 1:</strong> Click a red SOS marker or alert card to select it
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   MOCK DATA
+   ═══════════════════════════════════════════ */
+const CENTER = [53.72, 91.44];
+
+const alerts = [
+  { id: 1, name: 'Ольга Петрова',  phone: '+7 900 111-22-33', lat: 53.7235, lng: 91.4320, status: 'new',  guardId: null, time: '2 мин назад' },
+  { id: 2, name: 'Артём Сидоров',  phone: '+7 900 222-33-44', lat: 53.7180, lng: 91.4480, status: 'new',  guardId: null, time: '45 сек назад' },
+  { id: 3, name: 'Мария Иванова',  phone: '+7 900 333-44-55', lat: 53.7155, lng: 91.4350, status: 'new',  guardId: null, time: 'только что' },
+];
+
+const guards = [
+  { id: 1, name: 'Иванов А.С.',   initials: 'ИА', lat: 53.7280, lng: 91.4200, status: 'available' },
+  { id: 2, name: 'Козлов Д.В.',   initials: 'КД', lat: 53.7120, lng: 91.4550, status: 'available' },
+  { id: 3, name: 'Волкова Е.Н.',  initials: 'ВЕ', lat: 53.7210, lng: 91.4600, status: 'available' },
+  { id: 4, name: 'Орлов М.К.',    initials: 'ОМ', lat: 53.7160, lng: 91.4150, status: 'busy'      },
+];
+
+/* ═══════════════════════════════════════════
+   MAP SETUP
+   ═══════════════════════════════════════════ */
+const map = L.map('map', {
+  center: CENTER,
+  zoom: 14,
+  zoomControl: false,
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+L.control.zoom({ position: 'topright' }).addTo(map);
+
+/* ═══════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════ */
+let selectedAlertId = null;
+const alertMarkers = {};
+const guardMarkers = {};
+const routeLines = {};
+let animationTimers = {};
+
+/* ═══════════════════════════════════════════
+   CREATE MARKERS
+   ═══════════════════════════════════════════ */
+function makeSosIcon(state) {
+  const cls = state === 'selected' ? 'sos-marker selected'
+            : state === 'resolved' ? 'sos-marker resolved'
+            : 'sos-marker';
+  const symbol = state === 'resolved' ? '✓' : '＋';
+  return L.divIcon({ className: '', html: `<div class="${cls}">${symbol}</div>`, iconSize: [40, 40], iconAnchor: [20, 20] });
+}
+
+function makeGuardIcon(status) {
+  const cls = status === 'busy' ? 'guard-marker busy' : 'guard-marker';
+  return L.divIcon({ className: '', html: `<div class="${cls}">🛡</div>`, iconSize: [36, 36], iconAnchor: [18, 18] });
+}
+
+alerts.forEach(a => {
+  const m = L.marker([a.lat, a.lng], { icon: makeSosIcon('new') }).addTo(map);
+  m.on('click', () => selectAlert(a.id));
+  alertMarkers[a.id] = m;
+});
+
+guards.forEach(g => {
+  const m = L.marker([g.lat, g.lng], { icon: makeGuardIcon(g.status) }).addTo(map);
+  m.on('click', () => dispatchGuard(g.id));
+  guardMarkers[g.id] = m;
+});
+
+/* ═══════════════════════════════════════════
+   SELECT ALERT
+   ═══════════════════════════════════════════ */
+function selectAlert(id) {
+  const alert = alerts.find(a => a.id === id);
+  if (!alert || alert.status === 'resolved') return;
+
+  if (selectedAlertId !== null) {
+    const prev = alerts.find(a => a.id === selectedAlertId);
+    if (prev && prev.status !== 'resolved') {
+      alertMarkers[selectedAlertId].setIcon(makeSosIcon('new'));
+    }
+  }
+
+  selectedAlertId = id;
+  alertMarkers[id].setIcon(makeSosIcon('selected'));
+  map.panTo([alert.lat, alert.lng], { animate: true, duration: .5 });
+
+  updateInstruction(`<strong>Step 2:</strong> Now click an <span style="color:var(--blue)">available guard</span> to dispatch to <strong>${alert.name}</strong>`);
+  showToast(`SOS selected: ${alert.name}`, 'info');
+  renderSidebar();
+}
+
+/* ═══════════════════════════════════════════
+   DISPATCH GUARD
+   ═══════════════════════════════════════════ */
+function dispatchGuard(guardId) {
+  if (selectedAlertId === null) {
+    showToast('Select an SOS alert first', 'alert');
+    return;
+  }
+
+  const guard = guards.find(g => g.id === guardId);
+  if (!guard || guard.status !== 'available') {
+    showToast('Guard is not available', 'alert');
+    return;
+  }
+
+  const alert = alerts.find(a => a.id === selectedAlertId);
+  if (!alert || alert.status !== 'new') return;
+
+  guard.status = 'busy';
+  alert.status = 'assigned';
+  alert.guardId = guardId;
+
+  guardMarkers[guardId].setIcon(makeGuardIcon('busy'));
+  alertMarkers[alert.id].setIcon(makeSosIcon('selected'));
+
+  showToast(`${guard.name} dispatched → ${alert.name}`, 'success');
+  updateInstruction('Guard en route... Watch the map.');
+
+  const from = [guard.lat, guard.lng];
+  const to = [alert.lat, alert.lng];
+  drawRouteAndAnimate(guardId, alert.id, from, to);
+
+  selectedAlertId = null;
+  renderSidebar();
+  updateStats();
+}
+
+/* ═══════════════════════════════════════════
+   ROUTE & ANIMATION
+   ═══════════════════════════════════════════ */
+function drawRouteAndAnimate(guardId, alertId, from, to) {
+  const midLat = (from[0] + to[0]) / 2 + (Math.random() - .5) * .004;
+  const midLng = (from[1] + to[1]) / 2 + (Math.random() - .5) * .004;
+
+  const points = interpolatePath(from, [midLat, midLng], to, 120);
+
+  const line = L.polyline(points, {
+    color: '#4a9eff',
+    weight: 3,
+    opacity: .6,
+    dashArray: '8 6',
+  }).addTo(map);
+  routeLines[alertId] = line;
+
+  map.fitBounds(L.latLngBounds([from, to]).pad(.3), { animate: true, duration: .8 });
+
+  let step = 0;
+  const totalSteps = points.length;
+
+  animationTimers[guardId] = setInterval(() => {
+    step++;
+    if (step >= totalSteps) {
+      clearInterval(animationTimers[guardId]);
+      onGuardArrived(guardId, alertId);
+      return;
+    }
+    const pos = points[step];
+    guardMarkers[guardId].setLatLng(pos);
+    guards.find(g => g.id === guardId).lat = pos[0];
+    guards.find(g => g.id === guardId).lng = pos[1];
+
+    // Consume the traveled part of the route
+    line.setLatLngs(points.slice(step));
+  }, 50);
+}
+
+function interpolatePath(start, mid, end, numPoints) {
+  const pts = [];
+  const half = Math.floor(numPoints / 2);
+  for (let i = 0; i <= half; i++) {
+    const t = i / half;
+    pts.push([
+      start[0] + (mid[0] - start[0]) * t,
+      start[1] + (mid[1] - start[1]) * t,
+    ]);
+  }
+  for (let i = 1; i <= half; i++) {
+    const t = i / half;
+    pts.push([
+      mid[0] + (end[0] - mid[0]) * t,
+      mid[1] + (end[1] - mid[1]) * t,
+    ]);
+  }
+  return pts;
+}
+
+function onGuardArrived(guardId, alertId) {
+  const guard = guards.find(g => g.id === guardId);
+  const alert = alerts.find(a => a.id === alertId);
+
+  guard.status = 'at-location';
+  alert.status = 'resolved';
+
+  guardMarkers[guardId].setIcon(makeGuardIcon('available'));
+  alertMarkers[alertId].setIcon(makeSosIcon('resolved'));
+
+  if (routeLines[alertId]) {
+    map.removeLayer(routeLines[alertId]);
+    delete routeLines[alertId];
+  }
+
+  showToast(`✓ ${guard.name} arrived at ${alert.name}'s location`, 'success');
+
+  renderSidebar();
+  updateStats();
+
+  const remaining = alerts.filter(a => a.status === 'new');
+  if (remaining.length > 0) {
+    updateInstruction(`<strong>Step 1:</strong> ${remaining.length} alert(s) remaining. Click one to dispatch.`);
+  } else {
+    updateInstruction('✓ <strong>All alerts resolved!</strong> Great work, dispatcher.');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+   ═══════════════════════════════════════════ */
+function renderSidebar() {
+  const alertsEl = document.getElementById('alerts-list');
+  alertsEl.innerHTML = alerts.map(a => {
+    const sel = a.id === selectedAlertId ? ' selected' : '';
+    const res = a.status === 'resolved' ? ' resolved' : '';
+    const badgeCls = a.status === 'new' ? 'badge-new' : a.status === 'assigned' ? 'badge-assigned' : 'badge-resolved';
+    const badgeText = a.status === 'new' ? 'SOS' : a.status === 'assigned' ? 'En Route' : 'Resolved';
+    const guardName = a.guardId ? guards.find(g => g.id === a.guardId)?.name : '';
+    return `
+      <div class="alert-card${sel}${res}" onclick="selectAlert(${a.id})">
+        <div class="name"><span class="pulse-dot"></span>${a.name}</div>
+        <div class="meta">${a.phone} · ${a.time}${guardName ? ' · 🛡 ' + guardName : ''}</div>
+        <span class="status-badge ${badgeCls}">${badgeText}</span>
+      </div>`;
+  }).join('');
+
+  const guardsEl = document.getElementById('guards-list');
+  guardsEl.innerHTML = guards.map(g => {
+    const disabled = g.status !== 'available' ? ' disabled' : '';
+    const statusText = g.status === 'available' ? 'Available' : g.status === 'busy' ? 'En Route' : 'At Location';
+    const dotCls = g.status === 'available' ? 'available' : g.status === 'busy' ? 'busy' : 'at-location';
+    return `
+      <div class="guard-card${disabled}" onclick="dispatchGuard(${g.id})">
+        <div class="guard-avatar">${g.initials}</div>
+        <div class="guard-info">
+          <div class="name">${g.name}</div>
+          <div class="status">${statusText}</div>
+        </div>
+        <div class="guard-status-dot ${dotCls}"></div>
+      </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════ */
+function updateStats() {
+  document.getElementById('stat-sos').textContent = alerts.filter(a => a.status === 'new').length;
+  document.getElementById('stat-dispatched').textContent = alerts.filter(a => a.status === 'assigned' || a.status === 'resolved').length;
+}
+
+function updateInstruction(html) {
+  document.getElementById('instruction').innerHTML = html;
+}
+
+function showToast(msg, type) {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(40px)'; el.style.transition = 'all .3s'; }, 3000);
+  setTimeout(() => el.remove(), 3400);
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════ */
+renderSidebar();
+updateStats();
+
+// Simulate incoming SOS sound-like visual pulse on load
+setTimeout(() => showToast('🔴 3 active SOS alerts — waiting for dispatch', 'alert'), 500);
+</script>
+
+</body>
+</html>
