@@ -71,11 +71,23 @@ export class AlertsService {
         data: { status: 'busy' },
       });
 
+      // Place guard ~1km away — arrives in ~60s
+      const angle = Math.random() * 2 * Math.PI;
+      const offsetLat = Math.cos(angle) * 0.01;
+      const offsetLng = Math.sin(angle) * 0.01;
+      const startLat = dto.latitude + offsetLat;
+      const startLng = dto.longitude + offsetLng;
+
+      await this.prisma.guard.update({
+        where: { id: nearest.id },
+        data: { currentLat: startLat, currentLng: startLng },
+      });
+
       assignedGuard = {
         id: nearest.id,
         name: nearest.name,
-        lat: nearest.currentLat,
-        lng: nearest.currentLng,
+        lat: startLat,
+        lng: startLng,
       };
 
       this.tracking.emitToOrg(orgId, 'alert-assigned', updated);

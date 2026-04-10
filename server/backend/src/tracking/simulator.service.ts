@@ -40,8 +40,8 @@ export class SimulatorService implements OnModuleInit, OnModuleDestroy {
         const alert = guard.alerts[0];
         const curLat = guard.currentLat ?? 55.751;
         const curLng = guard.currentLng ?? 37.618;
-        lat = curLat + (alert.lat - curLat) * 0.12;
-        lng = curLng + (alert.lng - curLng) * 0.12;
+        lat = curLat + (alert.lat - curLat) * 0.15;
+        lng = curLng + (alert.lng - curLng) * 0.15;
       } else {
         lat =
           (guard.currentLat ?? 55.751) + (Math.random() - 0.5) * 0.002;
