@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  admins AdminAccount[]
+  users  User[]
+  guards Guard[]
+  alerts SosAlert[]
+}
+
+model AdminAccount {
+  id           String @id @default(uuid())
+  orgId        String
+  email        String @unique
+  passwordHash String
+  role         String @default("admin")
+  createdAt    DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id])
+}
+
+model User {
+  id             String    @id @default(uuid())
+  orgId          String
+  name           String
+  email          String    @unique
+  passwordHash   String
+  phone          String    @default("")
+  lastLat        Float?
+  lastLng        Float?
+  lastLocationAt DateTime?
+  isOnline       Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+
+  org    Organization @relation(fields: [orgId], references: [id])
+  alerts SosAlert[]
+}
+
+model Guard {
+  id             String    @id @default(uuid())
+  orgId          String
+  name           String
+  email          String    @unique
+  passwordHash   String
+  phone          String    @default("")
+  status         String    @default("offline")
+  currentLat     Float?
+  currentLng     Float?
+  lastLocationAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  org    Organization @relation(fields: [orgId], references: [id])
+  alerts SosAlert[]
+}
+
+model SosAlert {
+  id              String    @id @default(uuid())
+  userId          String
+  orgId           String
+  assignedGuardId String?
+  status          String    @default("new_alert")
+  lat             Float
+  lng             Float
+  accuracy        Float?
+  locationHistory String    @default("[]")
+  createdAt       DateTime  @default(now())
+  resolvedAt      DateTime?
+
+  user  User         @relation(fields: [userId], references: [id])
+  org   Organization @relation(fields: [orgId], references: [id])
+  guard Guard?       @relation(fields: [assignedGuardId], references: [id])
+}

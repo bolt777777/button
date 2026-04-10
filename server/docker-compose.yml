@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bodyguard
+      POSTGRES_PASSWORD: bodyguard_secret
+      POSTGRES_DB: bodyguard
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: postgresql://bodyguard:bodyguard_secret@postgres:5432/bodyguard
+      JWT_SECRET: dev-jwt-secret-change-in-prod
+      PORT: '3000'
+    depends_on:
+      - postgres
+
+  web:
+    build: ./web
+    restart: unless-stopped
+    ports:
+      - '5173:80'
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
