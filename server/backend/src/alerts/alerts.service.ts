@@ -24,7 +24,68 @@ export class AlertsService {
     });
 
     this.tracking.emitToOrg(orgId, 'new-alert', alert);
-    return { incidentId: alert.id, status: alert.status };
+
+    // Auto-assign nearest available guard
+    const guards = await this.prisma.guard.findMany({
+      where: { orgId, status: 'available' },
+    });
+
+    let assignedGuard: {
+      id: string;
+      name: string;
+      lat: number | null;
+      lng: number | null;
+    } | null = null;
+
+    if (guards.length > 0) {
+      let nearest = guards[0];
+      let minDist = Infinity;
+      for (const g of guards) {
+        const dlat = (g.currentLat ?? 0) - dto.latitude;
+        const dlng = (g.currentLng ?? 0) - dto.longitude;
+        const d = dlat * dlat + dlng * dlng;
+        if (d < minDist) {
+          minDist = d;
+          nearest = g;
+        }
+      }
+
+      const updated = await this.prisma.sosAlert.update({
+        where: { id: alert.id },
+        data: { assignedGuardId: nearest.id, status: 'assigned' },
+        include: {
+          user: { select: { id: true, name: true, phone: true } },
+          guard: {
+            select: {
+              id: true,
+              name: true,
+              currentLat: true,
+              currentLng: true,
+            },
+          },
+        },
+      });
+
+      await this.prisma.guard.update({
+        where: { id: nearest.id },
+        data: { status: 'busy' },
+      });
+
+      assignedGuard = {
+        id: nearest.id,
+        name: nearest.name,
+        lat: nearest.currentLat,
+        lng: nearest.currentLng,
+      };
+
+      this.tracking.emitToOrg(orgId, 'alert-assigned', updated);
+    }
+
+    return {
+      incidentId: alert.id,
+      status: assignedGuard ? 'assigned' : 'new_alert',
+      guard: assignedGuard,
+    };
   }
 
   async list(orgId: string, status?: string) {
@@ -53,7 +114,12 @@ export class AlertsService {
       include: {
         user: { select: { id: true, name: true, phone: true } },
         guard: {
-          select: { id: true, name: true, currentLat: true, currentLng: true },
+          select: {
+            id: true,
+            name: true,
+            currentLat: true,
+            currentLng: true,
+          },
         },
       },
     });

@@ -22,12 +22,32 @@ export class SimulatorService implements OnModuleInit, OnModuleDestroy {
 
   private async tick() {
     const guards = await this.prisma.guard.findMany({
-      where: { status: 'available' },
+      where: { status: { in: ['available', 'busy'] } },
+      include: {
+        alerts: {
+          where: { status: 'assigned' },
+          take: 1,
+          select: { lat: true, lng: true },
+        },
+      },
     });
 
     for (const guard of guards) {
-      const lat = (guard.currentLat ?? 55.751) + (Math.random() - 0.5) * 0.002;
-      const lng = (guard.currentLng ?? 37.618) + (Math.random() - 0.5) * 0.002;
+      let lat: number;
+      let lng: number;
+
+      if (guard.status === 'busy' && guard.alerts.length > 0) {
+        const alert = guard.alerts[0];
+        const curLat = guard.currentLat ?? 55.751;
+        const curLng = guard.currentLng ?? 37.618;
+        lat = curLat + (alert.lat - curLat) * 0.12;
+        lng = curLng + (alert.lng - curLng) * 0.12;
+      } else {
+        lat =
+          (guard.currentLat ?? 55.751) + (Math.random() - 0.5) * 0.002;
+        lng =
+          (guard.currentLng ?? 37.618) + (Math.random() - 0.5) * 0.002;
+      }
 
       await this.prisma.guard.update({
         where: { id: guard.id },

@@ -13,12 +13,24 @@ class SosUiState {
   const SosUiState({
     this.countdown,
     this.pendingIncidentId,
+    this.userLat,
+    this.userLng,
+    this.assignedGuardId,
+    this.assignedGuardName,
+    this.assignedGuardLat,
+    this.assignedGuardLng,
     this.lastError,
     this.demoMode = false,
   });
 
   final int? countdown;
   final String? pendingIncidentId;
+  final double? userLat;
+  final double? userLng;
+  final String? assignedGuardId;
+  final String? assignedGuardName;
+  final double? assignedGuardLat;
+  final double? assignedGuardLng;
   final Object? lastError;
   final bool demoMode;
 
@@ -27,6 +39,12 @@ class SosUiState {
   SosUiState copyWith({
     int? countdown,
     String? pendingIncidentId,
+    double? userLat,
+    double? userLng,
+    String? assignedGuardId,
+    String? assignedGuardName,
+    double? assignedGuardLat,
+    double? assignedGuardLng,
     Object? lastError,
     bool? demoMode,
     bool clearCountdown = false,
@@ -37,6 +55,16 @@ class SosUiState {
       countdown: clearCountdown ? null : (countdown ?? this.countdown),
       pendingIncidentId:
           clearIncident ? null : (pendingIncidentId ?? this.pendingIncidentId),
+      userLat: clearIncident ? null : (userLat ?? this.userLat),
+      userLng: clearIncident ? null : (userLng ?? this.userLng),
+      assignedGuardId:
+          clearIncident ? null : (assignedGuardId ?? this.assignedGuardId),
+      assignedGuardName:
+          clearIncident ? null : (assignedGuardName ?? this.assignedGuardName),
+      assignedGuardLat:
+          clearIncident ? null : (assignedGuardLat ?? this.assignedGuardLat),
+      assignedGuardLng:
+          clearIncident ? null : (assignedGuardLng ?? this.assignedGuardLng),
       lastError: clearError ? null : (lastError ?? this.lastError),
       demoMode: demoMode ?? this.demoMode,
     );
@@ -94,10 +122,14 @@ class SosController extends StateNotifier<SosUiState> {
     state = state.copyWith(clearCountdown: true);
   }
 
+  void resetSos() {
+    state = state.copyWith(clearIncident: true, clearError: true);
+  }
+
   Future<void> _confirmSos() async {
     final repo = _ref.read(sosRepositoryProvider);
     final clientRequestId = const Uuid().v4();
-    const mock = bool.fromEnvironment('MOCK_SOS', defaultValue: true);
+    const mock = bool.fromEnvironment('MOCK_SOS', defaultValue: false);
 
     try {
       final serviceOn = await Geolocator.isLocationServiceEnabled();
@@ -126,10 +158,11 @@ class SosController extends StateNotifier<SosUiState> {
       } on TimeoutException {
         state = state.copyWith(
           lastError:
-              'Геолокация не ответила вовремя. Выйдите на открытое место или проверьте GPS в настройках.',
+              'Геолокация не ответила вовремя. Проверьте GPS в настройках.',
         );
         return;
       }
+
       final res = await repo.createSos(
         CreateSosRequest(
           latitude: pos.latitude,
@@ -139,8 +172,15 @@ class SosController extends StateNotifier<SosUiState> {
           clientRequestId: clientRequestId,
         ),
       );
+
       state = state.copyWith(
         pendingIncidentId: res.incidentId,
+        userLat: pos.latitude,
+        userLng: pos.longitude,
+        assignedGuardId: res.guard?.id,
+        assignedGuardName: res.guard?.name,
+        assignedGuardLat: res.guard?.lat,
+        assignedGuardLng: res.guard?.lng,
         clearError: true,
         demoMode: mock,
       );

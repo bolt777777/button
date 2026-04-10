@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_theme.dart';
 import 'auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -42,9 +43,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: scheme.surface,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -52,21 +52,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.shield_rounded, size: 64, color: scheme.primary),
-                const SizedBox(height: 16),
-                Text(
-                  'Телохранитель',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [kCoralLight, kCoral],
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: kCoral.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
+                    ],
+                  ),
+                  child: const Icon(Icons.shield_rounded, size: 40, color: Colors.white),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+                const Text(
+                  'Телохранитель',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: kTextPrimary,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Sign in to continue',
+                  style: TextStyle(fontSize: 15, color: kTextSecondary),
+                ),
+                const SizedBox(height: 40),
                 TextField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
+                    hintText: 'Email',
+                    prefixIcon: Icon(Icons.email_outlined, color: kTextSecondary, size: 20),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -74,19 +101,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   controller: _password,
                   obscureText: true,
                   decoration: const InputDecoration(
-                    labelText: 'Пароль',
-                    border: OutlineInputBorder(),
+                    hintText: 'Password',
+                    prefixIcon: Icon(Icons.lock_outline_rounded, color: kTextSecondary, size: 20),
                   ),
                   onSubmitted: (_) => _login(),
                 ),
                 if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(_error!, style: TextStyle(color: scheme.error)),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: kCoralBg,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: kCoral, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _error!,
+                            style: const TextStyle(color: kCoralDark, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 54,
                   child: FilledButton(
                     onPressed: _loading ? null : _login,
                     child: _loading
@@ -98,11 +143,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Войти',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
+                        : const Text('Войти', style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],
